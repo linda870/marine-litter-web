@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sea Observation Form</title>
+  <link rel="stylesheet" href="design1.css">
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div class="step-container">
+      <div class="step-indicator">
+        <div class="step">1</div>
+        <div class="line"></div>
+        <div class="step active">2</div>
+        <div class="line"></div>
+        <div class="step">3</div>
+      </div>
+    </div>
+
+  
+  <main>
+    <form class="form-section" id="seaForm">
+      <h2>Sea Observation Form</h2>
+      <h3>Identification & Coordinates</h3>
+      <label>Country Code</label>
+      <input type="text" id="CountryCode" name="Country code" required>
+
+      <label>Station ID</label>
+      <select id="StationID" name="station ID" required>
+        <option disabled selected>Select Station ID</option>
+      </select>
+
+      <label>Sea Site ID</label>
+      <input type="text" id="SeaSiteID" name="sea site ID" required>
+
+      <label>Sea Site Name</label>
+      <input type="text" id="SeaSiteName" name="Sea Site Name">
+
+      <label>Latitude Start 100m</label>
+      <input type="text" id="LatitudeStart100m" name="Latitude start 100m">
+
+      <label>Longitude Start 100m</label>
+      <input type="text" id="LongitudeStart100m" name="longitude start 100m">
+
+      <label>Latitude End</label>
+      <input type="text" id="LatitudeEnd100m" name="latitude end 100m">
+
+      <label>Longitude End</label>
+      <input type="text" id="LongitudeEnd100m" name="longitude end 100m">
+
+      <h3> Environmental Conditions</h3>
+      <label>Prevailing Currents</label>
+      <select id="PrevailingCurrents" name="Prevailing Currents" required>
+        <option value="">Select</option>
+        <option>N</option><option>NE</option><option>E</option><option>SE</option>
+        <option>S</option><option>SW</option><option>W</option><option>NW</option>
+        <option>Variable</option><option>None</option>
+      </select>
+
+      <label>Prevailing Winds</label>
+      <select id="PrevailingWinds" name="Prevailing Winds" required>
+        <option value="">Select</option>
+        <option>N</option><option>NE</option><option>E</option><option>SE</option>
+        <option>S</option><option>SW</option><option>W</option><option>NW</option>
+        <option>Variable</option><option>Calm</option>
+      </select>
+
+      <h3> Marine Traffic & Infrastructure</h3>
+      <label>Shipping Lane Distance (km)</label>
+      <input type="text" id="ShippingLaneDistance" name="Marine Traffic & Infrastructure">
+
+      <label>Shipping Lane Position</label>
+      <input type="text" id="ShippingLanePosition" name="Shipping Lane Position">
+
+      <label>Traffic Density</label>
+      <input type="text" id="TrafficDensity" name="Traffic Density">
+
+      <label>Traffic Type</label>
+      <input type="text" id="TrafficType" name="Traffic Type">
+
+      <label>Harbour Present?</label>
+      <select id="Harbour" name="Harbour Present?" required>
+        <option value="">Select</option>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <div id="harbourDetails" style="display: none;">
+        <label>Harbour Type</label>
+        <input type="text" id="HarbourType" name="Harbour Type">
+
+        <label>Harbour Name</label>
+        <input type="text" id="HarbourName" name="Harbour Name">
+
+        <label>Harbour Distance (km)</label>
+        <input type="text" id="HarbourDistance" name="Harbour Distance (km)">
+
+        <label>Harbour Position</label>
+        <input type="text" id="HarbourPosition" name="Harbour Position">
+
+        <label>Harbour Size</label>
+        <input type="text" id="HarbourSize" name="Harbour Size">
+
+        <label>Harbour Vessels Type</label>
+        <input type="text" id="HarbourVesselsType" name="Harbour Vessels Type">
+      </div>
+
+      <h3> Environmental Pressures</h3>
+      <label>Aquaculture Site Present?</label>
+      <select id="aquaculture" name="Aquaculture Present?" required>
+        <option value="">Select</option>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <div id="aquacultureDetails" style="display: none;">
+        <label>Aquaculture Site ID</label>
+        <input type="text" id="NearestAquacultureSite" name="Aquaculture Site ID">
+        <label>Aquaculture Site Location</label>
+        <input type="text" id="NearestAquacultureLocation" name="Aquaculture Site Location">
+        <label>Aquaculture Distance (km)</label>
+        <input type="text" id="NearestAquacultureDistance" name="Aquaculture Distance (km)">
+      </div>
+
+      <label>Wastewater Discharge Present?</label>
+      <select id="WasteWaterDischarge" name="Wastewater Discharge Present?" required>
+        <option value="">Select</option>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <div id="wastewaterDetails" style="display: none;">
+        <label>Wastewater Discharge Distance (km)</label>
+        <input type="text" id="WasteWaterDischargeDistance" name="Wastewater Discharge Distance (km)">
+        <label>Wastewater Discharge Position</label>
+        <input type="text" id="WasteWaterDischargePosition" name="Wastewater Discharge Position">
+      </div>
+
+      <h3> Human Activities</h3>
+      <label>Fishing Activity in Area</label>
+      <select id="FishingActivity" name="Fishing Activity in Area" required>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <label>Fishing Season</label>
+      <input type="text" id="FishingSeason" name="Fishing Season">
+
+      <label>Surfing Zones Nearby</label>
+      <select name="Surfing Zones Nearby" id="SurfingZones" required>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <label>Surfing Season</label>
+      <input type="text" id="SurfingSeason" name="Surfing Season">
+
+      <label>Sailing Activity in Area</label>
+      <select id="SailingActivity" name="Sailing Activity in Area" required>
+        <option>Yes</option><option>No</option>
+      </select>
+
+      <label>Sailing Season</label>
+      <input type="text" id="SailingSeason" name="Sailing Season">
+
+      <label>Access by Boat</label>
+      <input type="text" id="AccessByBoat" name="Access by Boat">
+
+      <h3> Nearest Urban Area</h3>
+      <label>Nearest Town</label>
+      <input type="text" id="NearestTown" name="Nearest Town">
+
+      <label>Town Location</label>
+      <input type="text" id="NearestTownLocation" name="Town Location">
+
+      <label>Town Distance (km)</label>
+      <input type="text" id="NearestTownDistance" name="Town Distance (km)">
+
+      <label>Town Population</label>
+      <input type="text" id="NearestTownPopulation" name="Town Population">
+
+
+      <label>Remarks</label>
+      <textarea id="Remarks" name="Remarks" rows="4"></textarea>
+        <div class="action-buttons">
+          <button type="button" onclick="goToPreviousForm()">Previous</button>
+          <button type="submit">Next</button>
+        </div>
+    </form>
+  </main>
+  
+
+  
+
+  <script>
+    document.getElementById("aquaculture").addEventListener("change", e => {
+      document.getElementById("aquacultureDetails").style.display = e.target.value === "Yes" ? "block" : "none";
+    });
+    document.getElementById("WasteWaterDischarge").addEventListener("change", e => {
+      document.getElementById("wastewaterDetails").style.display = e.target.value === "Yes" ? "block" : "none";
+    });
+    document.getElementById("Harbour").addEventListener("change", e => {
+      document.getElementById("harbourDetails").style.display = e.target.value === "Yes" ? "block" : "none";
+    });
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.firebasestorage.app",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Autofill station details
+    function loadStationOptions() {
+      const stationSelect = document.getElementById("StationID");
+      db.ref("macroStations").once("value").then(snapshot => {
+        stationSelect.innerHTML = `<option disabled selected>Select Station ID</option>`;
+        snapshot.forEach(child => {
+          const id = child.key;
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = id;
+          stationSelect.appendChild(option);
+        });
+      });
+    }
+
+    function onStationSelect() {
+      const selectedId = document.getElementById("StationID").value;
+      db.ref("macroStations/" + selectedId).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById("CountryCode").value = data.countryCode || "";
+          // Add more autofill fields if needed
+        }
+      });
+    }
+
+    document.getElementById("StationID").addEventListener("change", onStationSelect);
+
+    const form = document.getElementById("seaForm");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const seaData = {};
+      form.querySelectorAll("input, select, textarea").forEach(el => {
+        if (el.name) seaData[el.name] = el.value;
+      });
+
+      const seaSiteId = seaData["sea site ID"];
+      if (!seaSiteId) {
+        alert("Please provide a Sea Site ID.");
+        return;
+      }
+
+      db.ref("macroSeaSites/" + seaSiteId).set(seaData)
+        .then(() => {
+          alert("Sea observation data saved successfully.");
+          window.location.href = "step3_macro.html";
+        })
+        .catch(err => alert("Error: " + err.message));
+    });
+
+    function goToPreviousForm() {
+      window.location.href = "step1_macro.html";
+    }
+
+    window.onload = () => {
+      loadStationOptions();
+    };
+  </script>
+
+
+</body>
+</html>
