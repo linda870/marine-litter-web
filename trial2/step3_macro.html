@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Survey Form - Marine Litter Med Plus</title>
+  <link rel="stylesheet" href="design1.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- XLSX for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-container">
+    <div class="step-indicator">
+      <div class="step">1</div>
+      <div class="line"></div>
+      <div class="step">2</div>
+      <div class="line"></div>
+      <div class="step active">3</div>
+    </div>
+  </div>
+
+  <main>
+    <form id="surveyForm" class="form-section">
+      <h2> Survey Form</h2>
+      
+      <h3>Identification & Location</h3>
+      <label>Survey ID</label>
+      <input type="text" name="Survey ID" required>
+
+      <label>Sea Site ID</label>
+      <select name="Sea Site ID" id="seaSiteIdSelect" onchange="fillSeaSiteInfo()" required></select>
+
+      <label>Sea Site Name</label>
+      <input type="text" name="Sea Site Name" id="seaSiteName" readonly>
+
+      <label>Country Code</label>
+      <input type="text" name="Country Code" id="countryCode" readonly>
+
+      <label>Latitude Start</label>
+      <input type="text" name="Latitude Start 100m">
+
+      <label>Longitude Start</label>
+      <input type="text" name="Longitude Start 100m">
+
+      <label>Latitude End</label>
+      <input type="text" name="Latitude End 100m">
+
+      <label>Longitude End</label>
+      <input type="text" name="Longitude End 100m">
+
+      <label>Transect Length (m)</label>
+      <input type="number" name="Transect Lenght">
+
+      <h3>Date & Time</h3>
+      <label>Date</label>
+      <input type="date" name="Date">
+
+      <label>Time</label>
+      <input type="time" name="Time">
+
+      <label>Weather Conditions</label>
+      <input type="text" name="Weather Conditions">
+
+      <h3>Surveyor Details</h3>
+      <label>Number of Surveyors</label>
+      <input type="number" name="Number of Surveyors">
+
+      <label>Lead Surveyor</label>
+      <input type="text" name="Name of Surveyor">
+
+      <label>Telephone</label>
+      <input type="tel" name="Telephone of Surveyor">
+
+      <label>Email</label>
+      <input type="email" name="Email of Surveyor">
+
+      <h3>Animal Observations</h3>
+      <label>Animals Observed?</label>
+      <select name="Animals">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Species</label>
+      <input type="text" name="Animals Species">
+
+      <label>Number of Animals</label>
+      <input type="number" name="Animals Number">
+
+      <label>State of Animals (alive, dead, etc.)</label>
+      <input type="text" name="Animals State">
+
+      <label>Entangled Animals?</label>
+      <select name="Entangled Animals">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Entangled in Which Litter?</label>
+      <input type="text" name="Entangled Animals Litter">
+
+      <h3>Special Circumstances</h3>
+      <label>Special Circumstances?</label>
+      <select name="Special Circumstances">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Type of Circumstances</label>
+      <input type="text" name="Special Circumstances Type">
+
+      <label>Unusual Items?</label>
+      <select name="Unusual Items">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Unusual Items Description</label>
+      <textarea name="Unusual Items Description" rows="3"></textarea>
+
+      <h3>Pollution Indicators</h3>
+      <label>Presence of Plastic Pellets?</label>
+      <select name="Presence of pellets">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <label>Presence of Oil / Tars?</label>
+      <select name="Presence of oil tars">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <h3>Encountered Pollutants</h3>
+      <label>
+        Encountered Pollutants?
+        <a href="codes.html" target="_blank" style="font-size: 0.9em; margin-left: 8px;">
+          [View Waste Codes]
+        </a>
+      </label>
+      <select name="Encountered Pollutants" id="pollutantsPresent">
+        <option value="">Select</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+
+      <div id="pollutantsSection" style="display:none">
+        <div id="pollutantsList"></div>
+        <button type="button" onclick="addPollutantEntry()">Add Pollutant</button>
+      </div>
+
+      <label>Last Cleaning Date</label>
+      <input type="date" name="Last Cleaning Date">
+
+      <h3>Upload Photo</h3>
+      <label>Upload Survey Photo</label>
+      <input type="file" name="Photo ID" accept="image/*">
+
+      <h3>Additional Notes</h3>
+      <label>Remarks</label>
+      <textarea name="Remarks" rows="3"></textarea>
+
+      <div class="action-buttons">
+        <button type="button" onclick="goToPreviousForm()">Previous</button>
+        <button type="button" onclick="submitAllJourneyData()">Save and view dashboard</button>
+      </div>
+    </form>
+
+  </main>
+
+  
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.firebasestorage.app",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const seaSites = {};
+
+    function loadSeaSites() {
+      db.ref("macroSeaSites").once("value", snapshot => {
+        const data = snapshot.val();
+        const select = document.getElementById("seaSiteIdSelect");
+        select.innerHTML = '<option value="">Select a site</option>';
+        for (let id in data) {
+          seaSites[id] = data[id];
+          const option = document.createElement("option");
+          option.value = id;               // Use Firebase key as the ID
+          option.textContent = id;         // Show the key as visible text
+          select.appendChild(option);
+        }
+
+      });
+    }
+
+    function fillSeaSiteInfo() {
+      const siteId = document.getElementById("seaSiteIdSelect").value;
+      const matchedSite = seaSites[siteId];
+      if (matchedSite) {
+        document.getElementById("seaSiteName").value = matchedSite["Sea Site Name"] || "";
+        document.getElementById("countryCode").value = matchedSite["Country code"] || "";
+      } else {
+        document.getElementById("seaSiteName").value = "";
+        document.getElementById("countryCode").value = "";
+      }
+    }
+
+
+    window.addEventListener("DOMContentLoaded", loadSeaSites);
+
+
+    function goToPreviousForm() {
+      window.location.href = "step2_macro.html";
+    }
+
+    function addPollutantEntry() {
+      const div = document.createElement("div");
+      div.className = "pollutant-entry";
+      div.innerHTML = `
+        <label>Code</label><input type="text" class="code">
+        <label>Category</label><input type="text" class="category">
+        <label>Type</label><input type="text" class="type">
+        <label>Number</label><input type="number" class="number">
+        <label>Weight (kg)</label><input type="number" class="weight">
+        <button type="button" onclick="this.parentElement.remove()">Remove</button>`;
+      document.getElementById("pollutantsList").appendChild(div);
+    }
+
+    document.getElementById("pollutantsPresent").addEventListener("change", e => {
+      document.getElementById("pollutantsSection").style.display = e.target.value === "Yes" ? "block" : "none";
+    });
+
+    async function submitAllJourneyData() {
+      const form = document.getElementById("surveyForm");
+      const surveyData = {};
+      form.querySelectorAll("input, select, textarea").forEach(el => {
+        if (el.name) surveyData[el.name] = el.value;
+      });
+
+      const surveyID = surveyData["Survey ID"];
+      if (!surveyID) {
+        alert("Please enter Survey ID.");
+        return;
+      }
+
+      // Save survey
+      await db.ref("macroSurveys/" + surveyID).set(surveyData);
+
+
+      // Save pollutants if any
+      const pollutantEntries = [];
+      if (document.getElementById("pollutantsPresent").value === "Yes") {
+        document.querySelectorAll(".pollutant-entry").forEach(entry => {
+          pollutantEntries.push({
+            Code: entry.querySelector(".code").value,
+            Category: entry.querySelector(".category").value,
+            Type: entry.querySelector(".type").value,
+            Number: entry.querySelector(".number").value,
+            Weight: entry.querySelector(".weight").value
+          });
+        });
+        await db.ref("macroSurveys/" + surveyID + "/pollutants").set(pollutantEntries);
+      }
+
+      // Redirect to macro dashboard
+      window.location.href = "display_macro.html";
+    }
+
+
+  </script>
+
+</body>
+</html>
