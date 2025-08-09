@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marine Litter Med Plus</title>
+  <link rel="stylesheet" href="design.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <h1>Let’s Track Marine Litter Together</h1>
+      <p>Choose your path to begin documenting pollution</p>
+      <div class="button-group">
+        <button onclick="document.getElementById('macro-section').scrollIntoView({ behavior: 'smooth' })"><b>Macro Litter</b></button>
+        <button onclick="document.getElementById('micro-section').scrollIntoView({ behavior: 'smooth' })"><b>Micro Litter</b></button>
+      </div>
+    </div>
+    <div class="scroll-down" id="scroll-icon">
+      <a href="#info">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#888" viewBox="0 0 24 24">
+          <path d="M12 16.5l-8-8 1.41-1.42L12 13.67l6.59-6.59L20 8.5z"/>
+        </svg>
+      </a>
+    </div> 
+  </section>
+
+  <!--info section-->
+  <section id="info" class="info-section">
+    <div class="info-card">
+      <div class="info-text">
+        <h2>About Marine Litter Med Plus</h2>
+        <p>
+          <b>Marine Litter Med Plus</b> is a citizen science and environmental monitoring initiative focused on tracking and documenting the presence of marine litter in the Mediterranean Sea.
+          The project enables volunteers, researchers, and coastal communities to collect standardized data on both macro and microplastic pollution, helping to better understand sources, distribution patterns, and environmental impact.
+        </p>
+        <p>
+          Our mission is to foster collaboration and data sharing among Mediterranean countries to support evidence-based policies and solutions for marine pollution reduction.
+          By providing easy-to-use digital tools for litter collection journeys, the project ensures high-quality data collection and public awareness across the region.
+        </p>
+      </div>
+      <div class="info-image">
+        <img src="fish_for_litter.jpg" alt="Marine Litter Awareness" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Macro Litter Section -->
+  <section id="macro-section">
+    <button onclick="location.href='step1_macro.html'">Start Now</button>
+  </section>
+
+  <!-- Micro Litter Section -->
+  <section id="micro-section">
+    <button onclick="location.href='step1_micro.html'">Start Now</button>
+  </section>
+
+  <!-- Footer -->
+  <footer id="contact">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3>Marine Litter Med Plus</h3>
+        <p>Protecting the Mediterranean from macro & microplastic pollution.</p>
+      </div>
+      <div class="footer-center">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#macro-section">Macro Plastic</a></li>
+          <li><a href="#micro-section">Micro Plastic</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-right">
+        <h4>Contact</h4>
+        <p>Email: <a href="mailto:info@marinelitter.org">info@marinelitter.org</a></p>
+        <p>Phone: +216 12 345 678</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Marine Litter Med Plus. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('scroll-icon').addEventListener('click', function () {
+      const navbar = document.getElementById('navbar');
+      navbar.classList.add('scrolled');
+    });
+    const navbar = document.getElementById('navbar');
+    const hero = document.getElementById('hero');
+
+    window.addEventListener('scroll', () => {
+      const heroBottom = hero.offsetTop + hero.offsetHeight;
+      if (window.scrollY >= heroBottom - 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+  </script>
+
+  <!-- Firebase Authentication Check -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.firebasestorage.app",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9",
+      measurementId: "G-1EH8EYCBLG"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Force session to end when browser closes
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .catch(error => console.error(error));
+
+    // Redirect to login.html if not logged in
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+</body>
+</html>

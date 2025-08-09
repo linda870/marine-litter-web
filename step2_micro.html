@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Microplastic Sample Survey</title>
+  <link rel="stylesheet" href="design1.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    .dropdown-icon {
+      cursor: pointer;
+      font-size: 18px;
+      color: rgb(0, 0, 0);
+    }
+    .hidden-table {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-container">
+      <div class="step-indicator">
+        <div class="step">1</div>
+        <div class="line"></div>
+        <div class="step active">2</div>
+      </div>
+  </div>
+  <main>
+    <form id="microSampleForm">
+      <h2>Microplastics Collection Survey</h2>
+      <label>National Station ID</label>
+      <input type="text" id="NationalStationID" name="NationalStationID" placeholder="Unique station ID" />
+      <label>Survey ID</label>
+      <input type="text" id="SurveyID" name="SurveyID" placeholder="Unique survey ID" />
+      <label>Date</label>
+      <input type="date" id="date" name="date" />
+      <label>Leaders</label>
+      <input type="text" id="leaders" name="leaders" />
+      <label>Manta Number</label>
+      <input type="number" id="MantaNumber" name="MantaNumber" />
+      <label>Start Latitude</label>
+      <input type="number" id="StartLatitude" name="StartLatitude" />
+      <label>Start Longitude</label>
+      <input type="number" id="StartLongitude" name="StartLongitude" />
+      <label>Start Time</label>
+      <input type="time" id="StartTime" name="StartTime" />
+      <label>End Time</label>
+      <input type="time" id="EndTime" name="EndTime" />
+      <label>Mid Latitude</label>
+      <input type="number" id="MidLatitude" name="MidLatitude" />
+      <label>Mid Longitude</label>
+      <input type="number" id="MidLongitude" name="MidLongitude" />
+      <label>Boat Speed</label>
+      <input type="number" id="BoatSpeed" name="BoatSpeed" />
+      <label>End Latitude</label>
+      <input type="number" id="EndLatitude" name="EndLatitude" />
+      <label>End Longitude</label>
+      <input type="number" id="EndLongitude" name="EndLongitude" />
+      <label>Meteo Conditions</label>
+      <input type="text" id="MeteoConditions" name="MeteoConditions" />
+      <label>Sea State</label>
+      <input type="text" id="SeaState" name="SeaState" />
+      <label>Wind Force</label>
+      <input type="text" id="WindForce" name="WindForce" />
+      <label>Wind Direction</label>
+      <input type="text" id="WindDirection" name="WindDirection" />
+      <label>Wind Speed</label>
+      <input type="text" id="WindSpeed" name="WindSpeed" />
+      <label>Temperature</label>
+      <input type="text" id="Temperature" name="Temperature" />
+      <label>Salinity</label>
+      <input type="text" id="Salinity" name="Salinity" />
+      <label>pH</label>
+      <input type="text" id="pH" name="pH" />
+      <label>Oxygen</label>
+      <input type="text" id="Oxygen" name="Oxygen" />
+
+      <label>Encountered Microplastics?</label>
+      <select id="MicroplasticPresent" name="MicroplasticPresent">
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <div id="MicroplasticSection" style="display:none;">
+        <div id="MicroplasticsList"></div>
+        <button type="button" onclick="addPlasticEntry()">Add Microplastic</button>
+      </div>
+        <template id="sampleTemplate">
+          <div class="microplastic-entry">
+            <label>Sample ID</label><input type="text" class="sample-id" />
+            <label>Morph Type</label><select class="sample-type">
+              <option value="">select</option>
+              <option value="Fragment">Fragment</option>
+              <option value="Pellet">Pellet</option>
+              <option value="Film">Film</option>
+              <option value="Line">Line</option>
+              <option value="ESP">ESP</option>
+              <option value="PU">PU</option>
+            </select>
+            <label>Color</label><select class="sample-color">
+              <option value="">select</option>
+              <option value="Black">Black</option>
+              <option value="Blue">Blue</option>
+              <option value="Green">Green</option>
+              <option value="Brown">Brown</option>
+              <option value="White">White</option>
+              <option value="Yellow">Yellow</option>
+              <option value="Orange">Orange</option>
+              <option value="Multicolor">Multicolor</option>
+            </select>
+            <label>Transparency</label><select class="sample-transparency">
+              <option value="">select</option>
+              <option value="Transparent">Transparent</option>
+              <option value="Translucent">Translucent</option>
+              <option value="Opaque">Opaque</option>
+            </select>
+            <label>Count</label><input type="number" class="sample-count" />
+            <label>Mass</label><input type="number" class="sample-mass" />
+            <label>Sieve Size</label><select class="sample-sieve">
+              <option value=">5mm">>5mm</option>
+            </select>
+            <label>Remarks</label><input type="text" class="sample-remarks" />
+            <button type="button" onclick="this.parentElement.remove()">Remove</button>
+          </div>
+        </template>
+      <div class="action-buttons">
+        <button type="button" onclick="goToPreviousForm()">Previous</button>
+        <button type="button" onclick="saveAndRedirect()()">Save and View Dashboard</button>
+      </div>
+    </form>
+  </main>
+  
+
+
+ 
+
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.appspot.com",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedStationId = localStorage.getItem("microNationalStationID");
+      if (savedStationId) {
+        document.getElementById("NationalStationID").value = savedStationId;
+      }
+    });
+
+    // Show/hide microplastic details based on selection
+    const microSection = document.getElementById("MicroplasticSection");
+    document.getElementById("MicroplasticPresent").addEventListener("change", e => {
+      microSection.style.display = e.target.value === "Yes" ? "block" : "none";
+    });
+
+    // Add new microplastic entry
+    function addPlasticEntry() {
+      const template = document.getElementById("sampleTemplate");
+      const clone = template.content.cloneNode(true);
+      document.getElementById("MicroplasticsList").appendChild(clone);
+    }
+
+    // Save data to Firebase and export to Excel
+    async function saveAndRedirect() {
+      const form = document.getElementById("microSampleForm");
+      const formData = new FormData(form);
+      const rawSurveyId = formData.get("SurveyID");
+      if (!rawSurveyId) {
+        alert("Please enter a valid Survey ID.");
+        return;
+      }
+      const surveyId = rawSurveyId.trim();
+
+      const entry = {
+        surveyId,
+        stationId: formData.get("NationalStationID")?.trim(),
+        date: formData.get("date"),
+        leaders: formData.get("leaders"),
+        mantaNumber: formData.get("MantaNumber"),
+        startLatitude: formData.get("StartLatitude"),
+        startLongitude: formData.get("StartLongitude"),
+        startTime: formData.get("StartTime"),
+        endTime: formData.get("EndTime"),
+        midLatitude: formData.get("MidLatitude"),
+        midLongitude: formData.get("MidLongitude"),
+        boatSpeed: formData.get("BoatSpeed"),
+        endLatitude: formData.get("EndLatitude"),
+        endLongitude: formData.get("EndLongitude"),
+        meteoConditions: formData.get("MeteoConditions"),
+        seaState: formData.get("SeaState"),
+        windForce: formData.get("WindForce"),
+        windDirection: formData.get("WindDirection"),
+        windSpeed: formData.get("WindSpeed"),
+        temperature: formData.get("Temperature"),
+        salinity: formData.get("Salinity"),
+        ph: formData.get("pH"),
+        oxygen: formData.get("Oxygen"),
+        encounteredMicroplastics: formData.get("MicroplasticPresent"),
+        microplastics: []
+      };
+
+      document.querySelectorAll(".microplastic-entry").forEach(div => {
+        entry.microplastics.push({
+          sampleId: div.querySelector(".sample-id").value,
+          type: div.querySelector(".sample-type").value,
+          color: div.querySelector(".sample-color").value,
+          transparency: div.querySelector(".sample-transparency").value,
+          count: div.querySelector(".sample-count").value,
+          mass: div.querySelector(".sample-mass").value,
+          sieve: div.querySelector(".sample-sieve").value,
+          remarks: div.querySelector(".sample-remarks").value
+        });
+      });
+
+      // Save to Firebase
+      await db.ref("microJourneySampleData/" + surveyId).set(entry);
+
+      // Reset form and hide microplastic section
+      form.reset();
+      document.getElementById("MicroplasticsList").innerHTML = "";
+      microSection.style.display = "none";
+
+      // Redirect to dashboard
+      window.location.href = "display_micro.html";
+    }
+    function goToPreviousForm() {
+        window.location.href = "step1_micro.html?edit=true";
+    }
+
+
+    
+  </script>
+</body>
+</html>
