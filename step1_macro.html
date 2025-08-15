@@ -45,16 +45,16 @@
  <main>
  <form class="form-section" id="stationForm">
  <h2>Station Information Form</h2>
- <label>Country Code</label>
+ <label>Country Code <span class="required">*</span></label>
  <input type="text" id="countryCode" required>
- <label>National Station ID</label>
+ <label>National Station ID <span class="required">*</span></label>
  <input type="text" id="stationId" required>
- <label>National Station Name</label>
+ <label>National Station Name <span class="required">*</span></label>
  <input type="text" id="stationName" required>
  <label>Latitude</label>
- <input type="text" id="latitude" required>
+ <input type="text" id="latitude">
  <label>Longitude</label>
- <input type="text" id="longitude" required>
+ <input type="text" id="longitude" >
  <label>Region</label>
  <input type="text" id="region">
  <label>Remarks</label>
@@ -118,4 +118,5 @@ function saveToFirebase() {
 
  </script>
  </body>
+
  </html>
