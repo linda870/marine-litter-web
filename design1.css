@@ -202,6 +202,21 @@ textarea:focus {
   outline: none;
   border-color: #0077cc;
 }
+.required {
+  color: red;
+  font-weight: bold;
+}
+
+input:required {
+  border: 2px solid #ff4d4d;
+}
+
+input:required:focus {
+  outline: none;
+  border-color: #ff1a1a;
+  box-shadow: 0 0 5px rgba(255, 26, 26, 0.5);
+}
+
 /*add microplastics section*/
 .microplastic-entry {
   border: 2px solid #cce4f6;
@@ -358,6 +373,7 @@ button {
 button:hover {
   background-color: #005fa3;
 }
+
 
 
 
