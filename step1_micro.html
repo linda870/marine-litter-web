@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Micro Litter Station Form - Marine Litter Med Plus</title>
+  <link rel="stylesheet" href="design1.css" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.appspot.com",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9",
+      measurementId: "G-1EH8EYCBLG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.goToNextForm = async function () {
+      const stationId = document.getElementById('NationalStationID').value.trim();
+      if (!stationId) {
+        alert("Please enter a valid National Station ID.");
+        return;
+      }
+      const stationData = {
+        countryCode: document.getElementById('CountryCode').value.trim(),
+        stationId,
+        stationName: document.getElementById('NationalStationName').value.trim(),
+        latitude: document.getElementById('Latitude').value.trim(),
+        longitude: document.getElementById('Longitude').value.trim(),
+        region: document.getElementById('Region').value.trim(),
+        dataOwner: document.getElementById('DataOwner').value.trim(),
+        closestCoast: document.getElementById('ClosestCoast').value.trim(),
+        TCMatrix: document.getElementById('TCMatrix').value.trim(),
+        seaDepth: document.getElementById('SeaDepth').value.trim(),
+        mixing: document.getElementById('Mixing').value.trim(),
+        areaTypology: document.getElementById('AreaTypology').value.trim(),
+        references: document.getElementById('References').value.trim(),
+        remarks: document.getElementById('Remarks').value.trim()
+      };
+
+      // Save current station for prefill in future steps
+      localStorage.setItem("currentMicroStation", JSON.stringify(stationData));
+      localStorage.setItem("microNationalStationID", stationId);
+
+      // Save to Firebase under the given stationId
+      await set(ref(db, 'microJourneyStations/' + stationId), stationData);
+
+      alert("Station data saved successfully.");
+
+      // Redirect to next step
+      window.location.href = "step2_micro.html";
+    };
+
+    window.onload = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isEditMode = urlParams.get("edit") === "true";
+
+      if (isEditMode) {
+        const saved = JSON.parse(localStorage.getItem("currentMicroStation"));
+        if (saved) {
+          document.getElementById('CountryCode').value = saved.countryCode || '';
+          document.getElementById('NationalStationID').value = saved.stationId || '';
+          document.getElementById('NationalStationName').value = saved.stationName || '';
+          document.getElementById('Latitude').value = saved.latitude || '';
+          document.getElementById('Longitude').value = saved.longitude || '';
+          document.getElementById('Region').value = saved.region || '';
+          document.getElementById('DataOwner').value = saved.dataOwner || '';
+          document.getElementById('ClosestCoast').value = saved.closestCoast || '';
+          document.getElementById('TCMatrix').value = saved.TCMatrix || '';
+          document.getElementById('SeaDepth').value = saved.seaDepth || '';
+          document.getElementById('Mixing').value = saved.mixing || '';
+          document.getElementById('AreaTypology').value = saved.areaTypology || '';
+          document.getElementById('References').value = saved.references || '';
+          document.getElementById('Remarks').value = saved.remarks || '';
+        }
+      } else {
+        // Clear old data when starting a new journey
+        localStorage.removeItem("currentMicroStation");
+        localStorage.removeItem("microNationalStationID");
+      }
+    };
+
+  </script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="step-container">
+    <div class="step-indicator">
+      <div class="step active">1</div>
+      <div class="line"></div>
+      <div class="step">2</div>
+    </div>
+  </div>
+  <main>
+    <form class="form-section" id="microstationForm" onsubmit="return false;">
+      <h2>Station Information</h2>
+
+      <label>Country Code</label>
+      <input type="text" id="CountryCode" name="countryCode" placeholder="e.g. TN, FR, IT" />
+
+      <label>National Station ID</label>
+      <input type="text" id="NationalStationID" name="stationId" placeholder="Unique ID" required />
+
+      <label>National Station Name</label>
+      <input type="text" id="NationalStationName" name="stationName" placeholder="Station Name" />
+
+      <label>Latitude</label>
+      <input type="text" id="Latitude" name="latitude" placeholder="e.g. 36.85" />
+
+      <label>Longitude</label>
+      <input type="text" id="Longitude" name="longitude" placeholder="e.g. 10.33" />
+
+      <label>Region</label>
+      <input type="text" id="Region" name="region" placeholder="e.g. Gulf of Tunis" />
+
+      <label>Data Owner</label>
+      <input type="text" id="DataOwner" name="dataOwner" />
+
+      <label>Closest Coast</label>
+      <input type="number" id="ClosestCoast" name="closestCoast" />
+
+      <label>TC Matrix</label>
+      <select id="TCMatrix" name="TCMatrix">
+        <option value="">select</option>
+        <option value="W">W</option>
+        <option value="S">S</option>
+      </select>
+
+      <label>Sea Depth</label>
+      <input type="number" id="SeaDepth" name="seaDepth" />
+
+      <label>Mixing</label>
+      <input type="number" id="Mixing" name="mixing" />
+
+      <label>Area Typology</label>
+      <input type="number" id="AreaTypology" name="areaTypology" />
+
+      <label>References</label>
+      <textarea id="References" name="references" rows="4" placeholder="Write references"></textarea>
+
+      <label>Remarks</label>
+      <textarea id="Remarks" name="remarks" rows="4" placeholder="Any relevant notes..."></textarea>
+      <div class="action-buttons">
+        <button onclick="goToNextForm()">Next</button>
+      </div>
+    </form>
+
+
+  </main>
+  
+</body>
+</html>
+

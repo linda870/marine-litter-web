@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Macroplastic Survey Display</title>
+      <link rel="stylesheet" href="display_design.css" />
+      <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    </head>
+    <body>
+      <div class="navbar" id="navbar">
+        <div class="logo-title">
+          <img src="logo.png" alt="Logo" class="logo">
+          <span>Marine Litter Med Plus</span>
+        </div>
+        <div class="nav-links">
+          <a href="home.html">Home</a>
+          <div class="dropdown">
+            <button class="dropdown-button">Macro Litter</button>
+            <div class="dropdown-content">
+              <a href="step1_macro.html">Conduct a survey</a>
+              <a href="display_macro.html">Dashboard</a>
+            </div>
+          </div>
+          <div class="dropdown">
+            <button class="dropdown-button">Micro Plastics</button>
+            <div class="dropdown-content">
+              <a href="step1_micro.html">Conduct a survey</a>
+              <a href="display_micro.html">Dashboard</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <h2>Macroplastic Survey Data</h2>
+
+        <table id="macroTable">
+          <thead>
+            <tr>
+              <th>Survey ID</th>
+              <th>Sea Site ID</th>
+              <th>Sea Site Name</th>
+              <th>Country Code</th>
+              <th>Date</th>
+              <th>Number of Pollutants</th>
+              <th>Pollutant Categories</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="downloadMacroExcel()">Export Table to Excel</button>
+
+        <canvas id="categoryChart" width="800" height="400"></canvas>
+        <button onclick="exportChart()">Export Chart to Image</button>
+      </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+        authDomain: "marinelitter-410a0.firebaseapp.com",
+        databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+        projectId: "marinelitter-410a0",
+        storageBucket: "marinelitter-410a0.appspot.com",
+        messagingSenderId: "902858063996",
+        appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      const auth = firebase.auth();
+
+      const tableBody = document.querySelector("#macroTable tbody");
+      const categoryCounts = {};
+      let chartInstance = null;
+
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          alert("You must log in to view your data.");
+          window.location.href = "index.html";
+        } else {
+          fetchAndDisplay(user.uid);
+        }
+      });
+
+      function fetchAndDisplay(uid) {
+        const userSurveysRef = db.ref(`macroSurveys/${uid}`);
+        userSurveysRef.on("value", snapshot => {
+          const data = snapshot.val() || {};
+
+          tableBody.innerHTML = "";
+          for (const key in categoryCounts) delete categoryCounts[key];
+
+          Object.entries(data).forEach(([surveyId, survey]) => {
+            const pollutants = survey.pollutants || [];
+            let totalPollutants = 0;
+            const categories = [];
+
+            pollutants.forEach(p => {
+              const cat = p.Category || "Unknown";
+              const count = parseInt(p.Number || "0");
+              totalPollutants += count;
+
+              if (!categoryCounts[cat]) categoryCounts[cat] = 0;
+              categoryCounts[cat] += count;
+
+              if (!categories.includes(cat)) categories.push(cat);
+            });
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${survey["Survey ID"] || surveyId}</td>
+              <td>${survey["Sea Site ID"] || ""}</td>
+              <td>${survey["Sea Site Name"] || ""}</td>
+              <td>${survey["Country Code"] || ""}</td>
+              <td>${survey["Date"] || ""}</td>
+              <td>${totalPollutants}</td>
+              <td>${categories.join(", ")}</td>
+              <td>${survey["Remarks"] || ""}</td>
+            `;
+            tableBody.appendChild(tr);
+          });
+
+          drawChart();
+        });
+      }
+
+      function drawChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        const userSurveysRef = db.ref(`macroSurveys/${auth.currentUser.uid}`);
+        userSurveysRef.once("value").then(snapshot => {
+          const data = snapshot.val() || {};
+          const surveyIds = Object.keys(data);
+
+          // Collect all unique categories
+          const categoriesSet = new Set();
+          Object.values(data).forEach(survey => {
+            (survey.pollutants || []).forEach(p => {
+              categoriesSet.add(p.Category || "Unknown");
+            });
+          });
+          const categories = Array.from(categoriesSet);
+
+          // Generate a color for each category
+          const colors = categories.map((_, i) => `hsl(${i * 360 / categories.length}, 70%, 60%)`);
+
+          // Prepare datasets: one per category
+          const datasets = categories.map((cat, idx) => {
+            return {
+              label: cat,
+              data: surveyIds.map(sid => {
+                const survey = data[sid];
+                const pollutants = (survey.pollutants || []).filter(p => p.Category === cat);
+                // Sum numbers for that category in this survey
+                return pollutants.reduce((sum, p) => sum + Number(p.Number || 0), 0);
+              }),
+              backgroundColor: colors[idx],
+              // Add custom tooltip with Type + Category
+              tooltipData: surveyIds.map(sid => {
+                const survey = data[sid];
+                const pollutants = (survey.pollutants || []).filter(p => p.Category === cat);
+                return pollutants.map(p => `${p.Type || "Unknown"} (${cat}): ${p.Number || 0}`).join("\n");
+              })
+            };
+          });
+
+          chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: surveyIds,
+              datasets: datasets
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      // Use tooltipData we stored in dataset
+                      const idx = context.dataIndex;
+                      return context.dataset.tooltipData[idx];
+                    }
+                  }
+                },
+                legend: {
+                  position: 'top'
+                }
+              },
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Survey ID'
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Number of Pollutants'
+                  }
+                }
+              }
+            }
+          });
+        });
+      }
+
+
+      async function downloadMacroExcel() {
+        const user = auth.currentUser;
+        if (!user) { alert("You must be logged in."); return; }
+
+        // Fetch user-specific data
+        const [stationsSnap, seasSnap, surveysSnap] = await Promise.all([
+          db.ref(`users/${user.uid}/macroStations`).get(),
+          db.ref(`users/${user.uid}/macroSeaSites`).get(),
+          db.ref(`macroSurveys/${user.uid}`).get()   // surveys are at root /macroSurveys
+        ]);
+
+
+        if (!surveysSnap.exists()) {
+          alert("No survey data to export.");
+          return;
+        }
+
+        const stations = stationsSnap.exists() ? stationsSnap.val() : {};
+        const seas = seasSnap.exists() ? seasSnap.val() : {};
+        const surveys = surveysSnap.val();
+
+        // 1) STATIONS SHEET
+        const stationFields = ["countryCode", "stationId", "stationName", "latitude", "longitude", "region", "remarks"];
+        const stationLabels = ["Country Code", "Station ID", "Station Name", "Latitude", "Longitude", "Region", "Remarks"];
+        const stationSheet = [stationLabels];
+
+        Object.values(stations).forEach(s => {
+          const row = stationFields.map(f => s[f] || "");
+          stationSheet.push(row);
+        });
+
+        // 2) SEA SITES SHEET
+        const seaFields = [
+          "Country code", "station ID", "sea site ID", "Sea Site Name", "Latitude start 100m", "longitude start 100m",
+          "latitude end 100m", "longitude end 100m", "Prevailing Currents", "Prevailing Winds", "Marine Traffic & Infrastructure",
+          "Shipping Lane Distance (km)", "Shipping Lane Position", "Traffic Density", "Traffic Type",
+          "Harbour Present?", "Aquaculture Present?", "Wastewater Discharge Present?", "Fishing Activity in Area",
+          "Fishing Season", "Surfing Zones Nearby", "Surfing Season", "Sailing Activity in Area", "Sailing Season",
+          "Access by Boat", "Nearest Town", "Town Location", "Town Distance (km)", "Town Population", "Remarks"
+        ];
+        const seaSheet = [seaFields];
+
+        Object.values(seas).forEach(s => {
+          const row = seaFields.map(f => s[f] || "");
+          seaSheet.push(row);
+        });
+
+        // 3) SURVEYS SHEET
+        const surveyFields = [
+          "Survey ID", "Sea Site ID", "Sea Site Name", "Country Code", "Latitude Start 100m", "Longitude Start 100m",
+          "Latitude End 100m", "Longitude End 100m", "Transect Lenght", "Date", "Time", "Weather Conditions",
+          "Number of Surveyors", "Name of Surveyor", "Telephone of Surveyor", "Email of Surveyor",
+          "Animals", "Animals Species", "Animals Number", "Animals State", "Entangled Animals",
+          "Entangled Animals Litter", "Special Circumstances", "Special Circumstances Type",
+          "Unusual Items", "Unusual Items Description", "Presence of pellets", "Presence of oil tars",
+          "Encountered Pollutants", "Last Cleaning Date", "Photo ID", "Remarks"
+        ];
+        const surveySheet = [surveyFields];
+
+        Object.values(surveys).forEach(s => {
+          const row = surveyFields.map(f => s[f] || "");
+          surveySheet.push(row);
+        });
+
+        // 4) POLLUTANTS SHEET
+        const pollutantSheet = [["Survey ID", "Code", "Category", "Type", "Number", "Weight (kg)"]];
+        Object.entries(surveys).forEach(([sid, s]) => {
+          (s.pollutants || []).forEach(p => {
+            pollutantSheet.push([
+              sid,
+              p.Code || "",
+              p.Category || "",
+              p.Type || "",
+              p.Number || "",
+              p.Weight || ""
+            ]);
+          });
+        });
+
+        // BUILD WORKBOOK
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(stationSheet), "Stations");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(seaSheet), "Sea Sites");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(surveySheet), "Surveys");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pollutantSheet), "Pollutants");
+
+        XLSX.writeFile(wb, "MacroLitter_Data.xlsx");
+      }
+
+
+
+
+      function exportChart() {
+        const canvas = document.getElementById('categoryChart');
+        const url = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "macro_category_chart.png";
+        a.click();
+      }
+      </script>
+    </body>
+</html>
+
+
+
+
+
+

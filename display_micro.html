@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Microplastic Data Display</title>
+  <link rel="stylesheet" href="display_design.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="navbar" id="navbar">
+    <div class="logo-title">
+      <img src="logo.png" alt="Logo" class="logo">
+      <span>Marine Litter Med Plus</span>
+    </div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Macro Litter</button>
+        <div class="dropdown-content">
+          <a href="step1_macro.html">Conduct a survey</a>
+          <a href="display_macro.html">Dashboard</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-button">Micro Plastics</button>
+        <div class="dropdown-content">
+          <a href="step1_micro.html">Conduct a survey</a>
+          <a href="display_micro.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <h2>Microplastic Data Table</h2>
+    <select id="typeFilter">
+        <option value="all">All</option>
+        <option value="fragment">Fragment</option>
+        <option value="pellet">Pellet</option>
+        <option value="film">Film</option>
+        <option value="line">Line</option>
+        <option value="esp">ESP</option>
+        <option value="pu">PU</option>
+    </select>
+
+    <table id="dataTable">
+        <thead>
+        <tr>
+            <th>National Station ID</th>
+            <th>Survey ID</th>
+            <th>Date</th>
+            <th>Microplastic Type</th>
+            <th>Count</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="downloadExcel()">Export Table to Excel</button>
+
+    <canvas id="microChart" width="800" height="400"></canvas>
+    <button onclick="exportChartAsImage()">Download Chart as Image</button>
+  </div>
+  
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.appspot.com",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    const tableBody = document.querySelector('#dataTable tbody');
+    const typeFilter = document.getElementById('typeFilter');
+    const ctx = document.getElementById('microChart').getContext('2d');
+
+    let chart;
+    let fullData = [];
+
+    function renderTableAndChart(data, filterType) {
+      tableBody.innerHTML = '';
+      const chartData = {};
+      const surveyLabels = new Set();
+
+      data.forEach(entry => {
+        const type = (entry.type || "").toLowerCase();
+        if (filterType !== 'all' && type !== filterType) return;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.stationId}</td>
+          <td>${entry.surveyId}</td>
+          <td>${entry.date}</td>
+          <td>${type}</td>
+          <td>${entry.count}</td>
+        `;
+        tableBody.appendChild(row);
+
+        const key = entry.surveyId;
+        surveyLabels.add(key);
+        if (!chartData[type]) chartData[type] = {};
+        chartData[type][key] = (chartData[type][key] || 0) + Number(entry.count);
+      });
+
+      const labels = Array.from(surveyLabels);
+      const datasets = Object.entries(chartData).map(([type, values]) => ({
+        label: type,
+        data: labels.map(label => values[label] || 0),
+        backgroundColor: getColor(type)
+      }));
+
+      const allCounts = datasets.flatMap(ds => ds.data);
+      const maxCount = allCounts.length ? Math.max(...allCounts) : 0;
+      const dynamicMaxY = maxCount > 0 ? Math.ceil(maxCount / 100) * 100 : 100;
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          plugins: {
+            title: { display: true, text: 'Microplastic Counts per Survey' },
+            legend: { position: 'top' }
+          },
+          scales: {
+            x: { stacked: false, title: { display: true, text: 'Survey ID' } },
+            y: { stacked: false, beginAtZero: true, max: dynamicMaxY, title: { display: true, text: 'Count' } }
+          }
+        }
+      });
+    }
+
+    function getColor(type) {
+      const colors = {
+        fragment: 'rgba(255, 99, 132, 0.6)',
+        pellet: 'rgba(54, 162, 235, 0.6)',
+        film: 'rgba(255, 206, 86, 0.6)',
+        line: 'rgba(75, 192, 192, 0.6)',
+        esp: 'rgba(153, 102, 255, 0.6)',
+        pu: 'rgba(255, 159, 64, 0.6)'
+      };
+      return colors[type] || 'gray';
+    }
+
+    typeFilter.addEventListener('change', () => {
+      renderTableAndChart(fullData, typeFilter.value);
+    });
+
+    // Load only logged-in user's data
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("You must log in to see your data.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const userId = user.uid;
+      db.ref(`users/${userId}/microSampleData`).once('value', snapshot => {
+        fullData = [];
+        snapshot.forEach(surveySnap => {
+          const survey = surveySnap.val();
+          const surveyId = survey.surveyId || surveySnap.key;
+          const date = survey.date || '';
+          const stationId = survey.stationId || '';
+
+          if (Array.isArray(survey.microplastics)) {
+            survey.microplastics.forEach(mp => {
+              fullData.push({
+                stationId,
+                surveyId,
+                date,
+                type: (mp.type || '').toLowerCase(),
+                count: Number(mp.count || 0)
+              });
+            });
+          }
+        });
+        renderTableAndChart(fullData, typeFilter.value);
+      });
+    });
+
+    async function downloadExcel() {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("You must log in first.");
+            return;
+        }
+        const userId = user.uid;
+
+        const [stationSnap, sampleSnap] = await Promise.all([
+            db.ref("microJourneyStations").get(),
+            db.ref(`users/${userId}/microSampleData`).get()
+        ]);
+
+        if (!sampleSnap.exists()) {
+            alert("No sample data to export.");
+            return;
+        }
+
+        const sampleData = Object.values(sampleSnap.val());
+        const stationData = stationSnap.exists() ? stationSnap.val() : {};
+
+        // 1) STATIONS SHEET
+        const stationFields = [
+            "countryCode", "stationId", "nationalStationName", "stationName", "latitude", "longitude",
+            "region", "dataOwner", "closestCoast", "TCMatrix", "seaDepth",
+            "mixing", "areaTypology", "references", "remarks"
+        ];
+        const stationLabels = {
+            countryCode: "Country Code",
+            stationId: "National Station ID",
+            nationalStationName: "National Station Name",
+            stationName: "Station Name",
+            latitude: "Latitude",
+            longitude: "Longitude",
+            region: "Region",
+            dataOwner: "Data Owner",
+            closestCoast: "Closest Coast",
+            TCMatrix: "TC Matrix",
+            seaDepth: "Sea Depth",
+            mixing: "Mixing",
+            areaTypology: "Area Typology",
+            references: "Write references",
+            remarks: "Remarks"
+        };
+
+        const stationSheet = [stationFields.map(f => stationLabels[f] || f)];
+        const addedStations = new Set();
+        sampleData.forEach(s => {
+            const sid = (s.stationId || "").trim();
+            if (sid && stationData[sid] && !addedStations.has(sid)) {
+                const row = stationFields.map(k => stationData[sid][k] || "");
+                stationSheet.push(row);
+                addedStations.add(sid);
+            }
+        });
+
+        // 2) SURVEYS SHEET
+        const surveyFields = [
+            "stationId", "surveyId", "date", "leaders", "mantaNumber", "startLatitude",
+            "startLongitude", "startTime", "endTime", "midLatitude", "midLongitude",
+            "boatSpeed", "endLatitude", "endLongitude", "meteoConditions", "seaState",
+            "windForce", "windDirection", "windSpeed", "temperature", "salinity",
+            "ph", "oxygen", "encounteredMicroplastics"
+        ];
+        const surveyLabels = {
+            stationId: "National Station ID",
+            surveyId: "Survey ID",
+            date: "Date",
+            leaders: "Leaders",
+            mantaNumber: "Manta Number",
+            startLatitude: "Start Latitude",
+            startLongitude: "Start Longitude",
+            startTime: "Start Time",
+            endTime: "End Time",
+            midLatitude: "Mid Latitude",
+            midLongitude: "Mid Longitude",
+            boatSpeed: "Boat Speed",
+            endLatitude: "End Latitude",
+            endLongitude: "End Longitude",
+            meteoConditions: "Meteo Conditions",
+            seaState: "Sea State",
+            windForce: "Wind Force",
+            windDirection: "Wind Direction",
+            windSpeed: "Wind Speed",
+            temperature: "Temperature",
+            salinity: "Salinity",
+            ph: "pH",
+            oxygen: "Oxygen",
+            encounteredMicroplastics: "Encountered Microplastics?"
+        };
+
+        const surveySheet = [surveyFields.map(f => surveyLabels[f] || f)];
+        sampleData.forEach(survey => {
+            const row = surveyFields.map(field => survey[field] || "");
+            surveySheet.push(row);
+        });
+
+        // 3) MICROPLASTICS SHEET
+        const sampleSheet = [
+            ["Survey ID", "Sample ID", "Morph Type", "Color", "Transparency", "Count", "Mass", "Sieve Size", "Remarks"]
+        ];
+        sampleData.forEach(s => {
+            s.microplastics?.forEach(mp => {
+                sampleSheet.push([
+                    s.surveyId || "",
+                    mp.sampleId || "",
+                    mp.morphType || "",
+                    mp.color || "",
+                    mp.transparency || "",
+                    mp.count || "",
+                    mp.mass || "",
+                    mp.sieveSize || "",
+                    mp.remarks || ""
+                ]);
+            });
+        });
+
+        // BUILD WORKBOOK
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(stationSheet), "Station Info");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(surveySheet), "Survey Info");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sampleSheet), "Sample Characteristics");
+
+        XLSX.writeFile(wb, "Microplastic_Data.xlsx");
+    }
+    function exportChartAsImage() {
+      const chartCanvas = document.querySelector("canvas");
+      if (!chartCanvas) {
+        alert("No chart found.");
+        return;
+      }
+      const link = document.createElement("a");
+      link.download = "microplastic_chart.png";
+      link.href = chartCanvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
+</body>
+</html>

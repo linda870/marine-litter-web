@@ -1,0 +1,121 @@
+<!DOCTYPE html> 
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8">
+ <title>Station Form - Marine Litter Med Plus</title>
+ <link rel="stylesheet" href="design1.css">
+ <!-- Firebase CDN -->
+ <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+ </head>
+ <body>
+ <!-- Navbar -->
+ <div class="navbar" id="navbar">
+ <div class="logo-title">
+ <img src="logo.png" alt="Logo" class="logo">
+ <span>Marine Litter Med Plus</span>
+ </div> <div class="nav-links">
+ <a href="home.html">Home</a>
+ <div class="dropdown">
+ <button class="dropdown-button">Macro Litter</button>
+ <div class="dropdown-content">
+ <a href="step1_macro.html">Conduct a survey</a>
+ <a href="display_macro.html">Dashboard</a>
+ </div>
+ </div>
+ <div class="dropdown">
+ <button class="dropdown-button">Micro Plastics</button>
+ <div class="dropdown-content">
+ <a href="step1_micro.html">Conduct a survey</a>
+ <a href="display_micro.html">Dashboard</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Step indicator -->
+ <div class="step-container">
+ <div class="step-indicator">
+ <div class="step active">1</div>
+ <div class="line"></div>
+ <div class="step">2</div>
+ <div class="line"></div>
+ <div class="step">3</div>
+ </div>
+ </div>
+ <main>
+ <form class="form-section" id="stationForm">
+ <h2>Station Information Form</h2>
+ <label>Country Code</label>
+ <input type="text" id="countryCode" required>
+ <label>National Station ID</label>
+ <input type="text" id="stationId" required>
+ <label>National Station Name</label>
+ <input type="text" id="stationName" required>
+ <label>Latitude</label>
+ <input type="text" id="latitude" required>
+ <label>Longitude</label>
+ <input type="text" id="longitude" required>
+ <label>Region</label>
+ <input type="text" id="region">
+ <label>Remarks</label>
+ <textarea id="remarks" rows="4"></textarea>
+ <div class="action-buttons">
+ <button type="button" onclick="saveToFirebase()">Next</button>
+ </div>
+ </form>
+ </main>
+ <script>
+ // Firebase config const
+    firebaseConfig = {
+    apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+    authDomain: "marinelitter-410a0.firebaseapp.com",
+    databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+    projectId: "marinelitter-410a0",
+    storageBucket: "marinelitter-410a0.firebasestorage.app",
+    messagingSenderId: "902858063996",
+    appId: "1:902858063996:web:7a7a9f43cb449d98b089f9",
+    measurementId: "G-1EH8EYCBLG" };
+ // Initialize Firebase
+ firebase.initializeApp(firebaseConfig);
+ const db = firebase.database();
+function saveToFirebase() {
+  // Get UID from sessionStorage
+  const uid = sessionStorage.getItem("uid");
+  if (!uid) {
+    alert("You must be logged in to save data.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  const stationData = {
+    countryCode: document.getElementById('countryCode').value.trim(),
+    stationId: document.getElementById('stationId').value.trim(),
+    stationName: document.getElementById('stationName').value.trim(),
+    latitude: document.getElementById('latitude').value.trim(),
+    longitude: document.getElementById('longitude').value.trim(),
+    region: document.getElementById('region').value.trim(),
+    remarks: document.getElementById('remarks').value.trim()
+  };
+
+  if (!stationData.stationId) {
+    alert("Please enter a valid Station ID.");
+    return;
+  }
+
+  // Save under this user's UID
+  db.ref(`users/${uid}/macroStations/${stationData.stationId}`)
+    .set(stationData)
+    .then(() => {
+      sessionStorage.setItem("lastStationId", stationData.stationId); // <--- store ID
+      alert("Station data saved successfully.");
+      window.location.href = "step2_macro.html?v=20250813";
+    })
+
+    .catch(error => {
+      alert("Error saving data: " + error.message);
+    });
+}
+
+ </script>
+ </body>
+ </html>

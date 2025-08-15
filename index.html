@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login / Sign Up</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <link rel="stylesheet" href="login_design.css" />
+</head>
+<body>
+  <div class="login-card">
+    <h2>Login / Sign Up</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Sign Up</button>
+    <button id="googleLoginBtn" class="google-btn">Login with Google</button>
+    <p class="error" id="errorMsg"></p>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiUYF1MeV9seUzZpkVMSTYQr87r-pXitk",
+      authDomain: "marinelitter-410a0.firebaseapp.com",
+      databaseURL: "https://marinelitter-410a0-default-rtdb.firebaseio.com",
+      projectId: "marinelitter-410a0",
+      storageBucket: "marinelitter-410a0.appspot.com",
+      messagingSenderId: "902858063996",
+      appId: "1:902858063996:web:7a7a9f43cb449d98b089f9"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+
+    // Keep session only during browser open
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .catch(error => document.getElementById("errorMsg").textContent = error.message);
+
+    // Email/Password login
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        document.getElementById("errorMsg").textContent = "Please enter both email and password.";
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const uid = userCredential.user.uid;
+          sessionStorage.setItem("uid", uid);
+          window.location.href = "home.html";
+        })
+        .catch(error => document.getElementById("errorMsg").textContent = error.message);
+    });
+
+    // Email/Password sign up
+    document.getElementById("signupBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        document.getElementById("errorMsg").textContent = "Please enter both email and password.";
+        return;
+      }
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const uid = userCredential.user.uid;
+          sessionStorage.setItem("uid", uid);
+          window.location.href = "home.html"; // Redirect after signup
+        })
+        .catch(error => document.getElementById("errorMsg").textContent = error.message);
+    });
+
+    // Google login
+    document.getElementById("googleLoginBtn").addEventListener("click", () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          const uid = result.user.uid;
+          sessionStorage.setItem("uid", uid);
+          window.location.href = "home.html";
+        })
+        .catch(error => document.getElementById("errorMsg").textContent = error.message);
+    });
+  </script>
+</body>
+</html>
+
+
+
