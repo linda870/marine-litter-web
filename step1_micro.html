@@ -128,14 +128,14 @@
     <form class="form-section" id="microstationForm" onsubmit="return false;">
       <h2>Station Information</h2>
 
-      <label>Country Code</label>
-      <input type="text" id="CountryCode" name="countryCode" placeholder="e.g. TN, FR, IT" />
+      <label>Country Code <span class="required">*</span></label>
+      <input type="text" id="CountryCode" name="countryCode" placeholder="e.g. TN, FR, IT" required />
 
-      <label>National Station ID</label>
+      <label>National Station ID <span class="required">*</span></label>
       <input type="text" id="NationalStationID" name="stationId" placeholder="Unique ID" required />
 
-      <label>National Station Name</label>
-      <input type="text" id="NationalStationName" name="stationName" placeholder="Station Name" />
+      <label>National Station Name <span class="required">*</span></label>
+      <input type="text" id="NationalStationName" name="stationName" placeholder="Station Name" required />
 
       <label>Latitude</label>
       <input type="text" id="Latitude" name="latitude" placeholder="e.g. 36.85" />
@@ -183,4 +183,5 @@
   
 </body>
 </html>
+
 
